@@ -1,0 +1,8 @@
+image_output/
+video_output/
+.venv/
+__pycache__/
+*.mp4
+*.jpg
+
+
