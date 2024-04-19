@@ -38,4 +38,3 @@ class Controller(threading.Thread):
     def set_auto_focus(self):
         if self.camera_control:
             self.camera_control.set_auto_focus()
-

@@ -7,6 +7,7 @@ import threading
 
 IMAGE_PATH = "image_output"
 
+
 def update_time():
     current_time = time.time()
     print(int(time.time())%6)
@@ -99,4 +100,3 @@ class CameraControl(threading.Thread):
         current_focus -= 5
         self.capture.set(cv2.CAP_PROP_FOCUS, current_focus)
         print(self.capture.get(cv2.CAP_PROP_FOCUS))
-

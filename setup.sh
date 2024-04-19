@@ -21,13 +21,14 @@ apt update && apt install build-essential cmake pkg-config libjpeg-dev libtiff5-
 
 echo "Creating python venv"
 python3 -m venv "${PY_VENV}"
+# shellcheck source=.venv
 source "${PY_VENV_ACTIVATE}"
 pip install -r "${PY_REQ}"
-chown -R $SUDO_USER:$SUDO_USER "${PY_VENV}"
+chown -R "${SUDO_USER}":"${SUDO_USER}" "${PY_VENV}"
 
 echo "Setting up folders"
-install -d -o $SUDO_USER -g $SUDO_USER -m 0755 "${IMAGE_OUTPUT}"
-install -d -o $SUDO_USER -g $SUDO_USER -m 0755 "${VIDEO_OUTPUT}"
+install -d -o "${SUDO_USER}" -g "${SUDO_USER}" -m 0755 "${IMAGE_OUTPUT}"
+install -d -o "${SUDO_USER}" -g "${SUDO_USER}" -m 0755 "${VIDEO_OUTPUT}"
 
 echo "Installing services"
 sed -i "s,INSTALL_USR,${SUDO_USER},g" "${SERVICE}"
@@ -38,8 +39,7 @@ systemctl enable "${SERVICE}"
 systemctl start "${SERVICE}"
 
 echo "Installing cron"
-crontab -u $SUDO_USER -l > timelapse_cron
+crontab -u "${SUDO_USER}" -l > timelapse_cron
 echo "21 0 * * * cd ${WORKSPACE} && ./run.sh --compress" >> timelapse_cron
-crontab -u $SUDO_USER timelapse_cron
+crontab -u "${SUDO_USER}" timelapse_cron
 rm timelapse_cron
-

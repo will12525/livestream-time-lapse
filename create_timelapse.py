@@ -5,12 +5,13 @@ import cv2
 
 IMAGE_PATH = "image_output"
 VIDEO_PATH = "video_output"
-VIDEO_PATH = "image_output"
 FPS = 30
 DEFAULT_TIMELAPSE_NAME = "Timelapse"
 
+
 def setup():
     pass
+
 
 def create_timelapse(output_file):
     jpeg_folder_path = pathlib.Path(IMAGE_PATH).resolve()
@@ -44,4 +45,3 @@ if __name__ == '__main__':
         output_file_name = f"{args.file_name} {output_file_name}"
 
     create_timelapse(f"{VIDEO_PATH}/{output_file_name}")
-
