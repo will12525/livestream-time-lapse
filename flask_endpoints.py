@@ -2,6 +2,7 @@ from flask import Response
 from flask import Flask
 from flask import render_template
 from camera_control import CameraControl
+
 app = Flask(__name__)
 
 camera_control = CameraControl()
@@ -17,6 +18,7 @@ def index():
 @app.route("/video_feed")
 def video_feed():
     return Response(camera_control.get_live_frame(), mimetype="multipart/x-mixed-replace; boundary=frame")
+
 
 @app.route("/increase_focus", methods=['POST'])
 def increase_focus():

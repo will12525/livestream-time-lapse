@@ -6,13 +6,11 @@ import threading
 # 68400 seconds between 3 and 22 / 11400 frames = 1 frame capture every 6 seconds
 
 IMAGE_PATH = "image_output"
+JPG_EXT = ".jpg"
 
 
-def update_time():
-    current_time = time.time()
-    print(int(time.time())%6)
-    if int(time.time()) % 6 == 0:
-        print(current_time)
+def get_hour():
+    return int(time.strftime("%H"))
 
 
 class CameraControl(threading.Thread):
@@ -31,7 +29,7 @@ class CameraControl(threading.Thread):
     capture = None
     image = None
     running = False
-    capture_saved = False
+    frame_saved = False
 
     def __init__(self):
         threading.Thread.__init__(self, daemon=True)
@@ -59,7 +57,7 @@ class CameraControl(threading.Thread):
         try:
             while True:
                 with self.lock:
-                    error, encoded_image = cv2.imencode(".jpg", self.image)
+                    error, encoded_image = cv2.imencode(JPG_EXT, self.image)
                 if error:
                     yield b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encoded_image) + b'\r\n'
         except GeneratorExit:
@@ -67,13 +65,22 @@ class CameraControl(threading.Thread):
         finally:
             pass
 
-    def save_current_frame(self):
-        with self.lock:
-            cv2.imwrite(f'{IMAGE_PATH}/image_{self.save_index}.jpg', self.image)
-        self.save_index += 1
+    def reset_frame_saved(self):
+        if int(time.time()) % self.capture_rate != 0:
+            self.frame_saved = False
+
+    def reset_counter(self):
+        if get_hour() < self.start_hour:
+            self.save_index = 0
 
     def check_save_image(self):
-        return not self.capture_saved and self.start_hour <= int(time.strftime("%H")) < self.end_hour and int(time.time()) % self.capture_rate == 0
+        return not self.frame_saved and self.start_hour <= get_hour() < self.end_hour and int(time.time()) % self.capture_rate == 0
+
+    def save_current_frame(self, image):
+        if self.check_save_image():
+            cv2.imwrite(f'{IMAGE_PATH}/image_{self.save_index}{JPG_EXT}', image)
+            self.save_index += 1
+            self.frame_saved = False
 
     def run(self):
         self.running = True
@@ -82,11 +89,9 @@ class CameraControl(threading.Thread):
             if ret:
                 with self.lock:
                     self.image = image.copy()
-                if self.check_save_image():
-                    self.save_current_frame()
-                    self.capture_saved = True
-                if int(time.time()) % self.capture_rate != 0:
-                    self.capture_saved = False
+                self.save_current_frame(image)
+            self.reset_frame_saved()
+            self.reset_counter()
 
     def set_auto_focus(self):
         self.capture.set(cv2.CAP_PROP_AUTOFOCUS, 1)

@@ -10,7 +10,12 @@ DEFAULT_TIMELAPSE_NAME = "Timelapse"
 
 
 def setup():
-    pass
+    image_path = pathlib.Path(IMAGE_PATH).resolve()
+    if not image_path.exists():
+        image_path.mkdir(exist_ok=True)
+    video_path = pathlib.Path(VIDEO_PATH).resolve()
+    if not video_path.exists():
+        video_path.mkdir(exist_ok=True)
 
 
 def create_timelapse(output_file):
