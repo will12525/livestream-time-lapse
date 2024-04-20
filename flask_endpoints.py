@@ -1,10 +1,12 @@
 from flask import Response
 from flask import Flask
 from flask import render_template
-from backend_handler import Controller
-
+from camera_control import CameraControl
 app = Flask(__name__)
-controller = Controller()
+
+camera_control = CameraControl()
+camera_control.connect_camera(-1)
+camera_control.start()
 
 
 @app.route("/")
@@ -14,24 +16,23 @@ def index():
 
 @app.route("/video_feed")
 def video_feed():
-    return Response(controller.get_live_frame(), mimetype="multipart/x-mixed-replace; boundary=frame")
-
+    return Response(camera_control.get_live_frame(), mimetype="multipart/x-mixed-replace; boundary=frame")
 
 @app.route("/increase_focus", methods=['POST'])
 def increase_focus():
-    controller.increase_focus()
+    camera_control.increase_focus()
     return {}, 200
 
 
 @app.route("/decrease_focus", methods=['POST'])
 def decrease_focus():
-    controller.decrease_focus()
+    camera_control.decrease_focus()
     return {}, 200
 
 
 @app.route("/set_auto_focus", methods=['POST'])
 def set_auto_focus():
-    controller.set_auto_focus()
+    camera_control.set_auto_focus()
     return {}, 200
 
 
