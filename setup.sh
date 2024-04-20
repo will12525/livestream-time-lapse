@@ -40,6 +40,6 @@ systemctl start "${SERVICE}"
 
 echo "Installing cron"
 crontab -u "${SUDO_USER}" -l > timelapse_cron
-echo "21 0 * * * cd ${WORKSPACE} && ./run.sh --compress" >> timelapse_cron
+echo "21 0 * * * cd ${WORKSPACE} && ./run.sh --compress && rm -rf ${IMAGE_OUTPUT} && mkdir ${IMAGE_OUTPUT}" >> timelapse_cron
 crontab -u "${SUDO_USER}" timelapse_cron
 rm timelapse_cron
