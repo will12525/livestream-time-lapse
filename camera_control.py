@@ -80,7 +80,7 @@ class CameraControl(threading.Thread):
         if self.check_save_image():
             cv2.imwrite(f'{IMAGE_PATH}/image_{self.save_index}{JPG_EXT}', image)
             self.save_index += 1
-            self.frame_saved = False
+            self.frame_saved = True
 
     def run(self):
         self.running = True

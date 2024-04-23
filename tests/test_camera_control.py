@@ -1,7 +1,7 @@
 from unittest import TestCase
 from camera_control import CameraControl
 
-from . import patch_time_time, patch_time_strftime
+from . import patch_time_time, patch_time_strftime, patch_cv2_imwrite
 
 
 class TestCameraControl(TestCase):
@@ -87,6 +87,41 @@ class TestCameraControlGeneral(TestCameraControl):
             patch_time_strftime(self, i)
             camera_control.reset_counter()
             assert camera_control.save_index == 1
+
+    def test_save_current_frame(self):
+        camera_control = CameraControl()
+        patch_cv2_imwrite(self)
+        patch_time_time(self, camera_control.capture_rate)
+        assert camera_control.save_index == 0
+        for i in range(camera_control.start_hour, camera_control.end_hour):
+            patch_time_strftime(self, i)
+            camera_control.save_current_frame(None)
+            assert camera_control.frame_saved
+            assert camera_control.save_index == i - camera_control.start_hour + 1
+            camera_control.frame_saved = False
+
+    def test_save_current_frame_lower_boundary(self):
+        camera_control = CameraControl()
+        patch_cv2_imwrite(self)
+        patch_time_time(self, camera_control.capture_rate)
+
+        for i in range(0, camera_control.start_hour):
+            # camera_control.save_index = 1
+            patch_time_strftime(self, i)
+            camera_control.save_current_frame(None)
+            assert not camera_control.frame_saved
+            assert camera_control.save_index == 0
+
+    def test_save_current_frame_upper_boundary(self):
+        camera_control = CameraControl()
+        patch_cv2_imwrite(self)
+        patch_time_time(self, camera_control.capture_rate)
+        for i in range(camera_control.end_hour, 24):
+            # camera_control.save_index = 1
+            patch_time_strftime(self, i)
+            camera_control.save_current_frame(None)
+            assert not camera_control.frame_saved
+            assert camera_control.save_index == 0
 
     def test_percent_out(self):
         my_list = [0] * 120
