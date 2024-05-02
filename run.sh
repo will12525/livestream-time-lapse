@@ -13,7 +13,7 @@ source "${PY_VENV_ACTIVATE}"
 
 if [ "$RUN_TYPE" = "--compress" ]; then
     echo "Compress"
-    python3 create_timelapse.py -f "${TIMELAPSE_FILE_EXTRA}"
+    python3 create_timelapse.py -f "${TIMELAPSE_FILE_EXTRA}" -u "${URL_UPLOAD}"
 else
     echo "Capture"
     flask run --host=0.0.0.0 -p 5000
