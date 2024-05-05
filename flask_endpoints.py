@@ -1,14 +1,26 @@
+import pathlib
 from flask import Response
 from flask import Flask
 from flask import render_template
 from camera_control import CameraControl
 
+IMAGE_PATH = "image_output"
+
 app = Flask(__name__)
 
-camera_control = CameraControl()
-camera_control.connect_camera(-1)
-camera_control.start()
 
+def get_last_image_index():
+    jpeg_folder_path = pathlib.Path(IMAGE_PATH).resolve()
+    jpeg_file_paths = sorted(jpeg_folder_path.rglob('*.jpg'), key=lambda path: int(path.stem.rsplit("_", 1)[1]))
+    if jpeg_file_paths:
+        return int(jpeg_file_paths[-1].stem.rsplit("_", 1)[1])
+    return 0
+
+start_index = get_last_image_index() + 1
+camera_control = CameraControl(start_index)
+camera_control.connect_camera('/dev/video0')
+camera_control.start()
+print(camera_control.get_camera_metadata())
 
 @app.route("/")
 def index():
@@ -35,6 +47,11 @@ def decrease_focus():
 @app.route("/set_auto_focus", methods=['POST'])
 def set_auto_focus():
     camera_control.set_auto_focus()
+    return {}, 200
+
+@app.route("/zero_focus", methods=['POST'])
+def zero_focus():
+    camera_control.zero_focus()
     return {}, 200
 
 

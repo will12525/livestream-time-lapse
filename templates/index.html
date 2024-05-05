@@ -13,13 +13,14 @@
     <script type="text/javascript" language="javascript" src="{{ url_for('static', filename='app.js') }}"></script>
 
   </head>
-  <body>
+  <body style="background-color:black;">
     <div>
       <h1>Pi Video Surveillance</h1>
       <div class="btn-group" role="group" aria-label="Basic example">
         <button type="button" class="btn btn-primary" onclick="javascript:increase_focus()">increase_focus</button>
         <button type="button" class="btn btn-primary" onclick="javascript:decrease_focus()">decrease_focus</button>
         <button type="button" class="btn btn-primary" onclick="javascript:set_auto_focus()">set_auto_focus</button>
+        <button type="button" class="btn btn-primary" onclick="javascript:zero_focus()">zero_focus</button>
       </div>
     </div>
     <div class="container-fluid">

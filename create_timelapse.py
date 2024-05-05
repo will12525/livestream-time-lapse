@@ -31,6 +31,8 @@ def create_timelapse(output_file):
     fourcc = cv2.VideoWriter_fourcc('a', 'v', 'c', '1')
     print(f"Starting build, writing file to {output_file}")
     for index, image_path in enumerate(jpeg_file_paths):
+        if image_path.stem.split("_")[1] != str(time.strftime('%j')):
+            continue
         image = cv2.imread(str(image_path))
         if height is None or width is None:
             height, width, layers = image.shape

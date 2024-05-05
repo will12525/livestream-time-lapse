@@ -12,10 +12,13 @@ JPG_EXT = ".jpg"
 def get_hour():
     return int(time.strftime("%H"))
 
+def get_day():
+    return int(time.strftime('%j'))
+
 
 class CameraControl(threading.Thread):
-    WIDTH = 1920
-    HEIGHT = 1080
+    WIDTH = 1280
+    HEIGHT = 720
     VIDEO_FPS = 20
     focus_increment = 5
     # seconds
@@ -31,8 +34,11 @@ class CameraControl(threading.Thread):
     running = False
     frame_saved = False
 
-    def __init__(self):
+    def __init__(self, start_index=0):
         threading.Thread.__init__(self, daemon=True)
+        self.save_index = start_index
+        print(cv2.__version__)
+        print(self.save_index)
 
     def __del__(self):
         self.running = False
@@ -41,10 +47,15 @@ class CameraControl(threading.Thread):
 
     def connect_camera(self, camera_bus):
         self.capture = cv2.VideoCapture(camera_bus, cv2.CAP_V4L2)
-        self.capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-        self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.WIDTH)
-        self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.HEIGHT)
-        self.capture.set(cv2.CAP_PROP_FPS, self.VIDEO_FPS)
+#        error = self.capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+        error = self.capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('H', '2', '6', '4'))
+        print(f"ERROR CODE: {error}, FOURCC")
+        error = self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.WIDTH)
+        print(f"ERROR CODE: {error}, WIDTH")
+        error = self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.HEIGHT)
+        print(f"ERROR CODE: {error}, HEIGHT")
+        error = self.capture.set(cv2.CAP_PROP_FPS, self.VIDEO_FPS)
+        print(f"ERROR CODE: {error}, FPS")
 
     def get_camera_metadata(self):
         if self.capture:
@@ -60,6 +71,8 @@ class CameraControl(threading.Thread):
                     error, encoded_image = cv2.imencode(JPG_EXT, self.image)
                 if error:
                     yield b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encoded_image) + b'\r\n'
+                else:
+                    print(f"ERROR CODE: {error}, imencode")
         except GeneratorExit:
             pass
         finally:
@@ -78,22 +91,32 @@ class CameraControl(threading.Thread):
 
     def save_current_frame(self, image):
         if self.check_save_image():
-            cv2.imwrite(f'{IMAGE_PATH}/image_{self.save_index}{JPG_EXT}', image)
+            error = cv2.imwrite(f'{IMAGE_PATH}/image_{get_day()}_{self.save_index}{JPG_EXT}', image)
+            print(f"ERROR CODE: {error}, imwrite")
             self.save_index += 1
             self.frame_saved = True
 
     def run(self):
         self.running = True
         while self.running:
-            ret, image = self.capture.read()
-            if ret:
+            error, image = self.capture.read()
+            if error:
                 with self.lock:
                     self.image = image.copy()
                 self.save_current_frame(image)
+            else:
+                print(f"ERROR CODE: {error}, read")
+
             self.reset_frame_saved()
             self.reset_counter()
+        print("Stopping")
 
     def set_auto_focus(self):
+        self.capture.set(cv2.CAP_PROP_AUTOFOCUS, 1)
+
+    def zero_focus(self):
+        self.capture.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+        self.capture.set(cv2.CAP_PROP_FOCUS, 0)
         self.capture.set(cv2.CAP_PROP_AUTOFOCUS, 1)
 
     def update_focus(self, increment):
